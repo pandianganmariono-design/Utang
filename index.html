@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Aplikasi Catat Piutang & Laporan Keuangan</title>
+  <title>MP Finance</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Pustaka SheetJS untuk Excel -->
@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
     body {
       font-family: 'Inter', sans-serif;
     }
@@ -54,7 +54,7 @@
       .tab-content-panel {
         display: block !important;
       }
-      #tab-piutang, #tab-teman {
+      #tab-piutang, #tab-teman, #tab-users {
         display: none !important;
       }
       #tab-laporan {
@@ -63,51 +63,145 @@
     }
   </style>
 </head>
-<body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-6">
+<body class="bg-slate-100 text-slate-800 min-h-screen p-3 md:p-6 flex flex-col justify-between">
 
-  <!-- Main App Container -->
-  <div class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden container-card border border-slate-200/60">
+  <!-- ========================================== -->
+  <!-- MODAL NOTIFIKASI / PESAN -->
+  <!-- ========================================== -->
+  <div id="customAlertModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center z-50 hidden">
+    <div class="bg-white rounded-2xl shadow-xl p-6 max-w-md w-full mx-4 border border-slate-200 animate-in fade-in zoom-in duration-200">
+      <div class="flex items-center space-x-3 mb-3">
+        <div id="modalIconContainer" class="p-2.5 rounded-xl bg-emerald-100 text-emerald-600">
+          <i id="modalIcon" class="fa-solid fa-circle-info text-xl"></i>
+        </div>
+        <h3 id="modalTitle" class="text-base font-bold text-slate-800">Notifikasi</h3>
+      </div>
+      <p id="modalMessage" class="text-sm text-slate-600 mb-5 leading-relaxed">Pesan modal disini.</p>
+      <div class="flex justify-end">
+        <button onclick="closeModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-semibold text-xs rounded-xl transition shadow-md">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SCREEN 1: AUTHENTICATION / LOGIN -->
+  <!-- ========================================== -->
+  <div id="authScreen" class="max-w-md mx-auto my-auto w-full bg-white rounded-3xl shadow-2xl overflow-hidden border border-slate-200/80 p-6 md:p-8">
+    <div class="text-center mb-6">
+      <div class="inline-flex bg-emerald-100 p-4 rounded-2xl text-emerald-600 mb-3 shadow-inner">
+        <i class="fa-solid fa-vault text-3xl"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold text-slate-800 tracking-tight">MP Finance/h1>
+      <p class="text-xs text-slate-500 mt-1">Masuk dengan akun terdaftar untuk mengakses data</p>
+    </div>
+
+    <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">Username / ID Pengguna</label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-3 text-slate-400 text-sm"><i class="fa-solid fa-user"></i></span>
+          <input type="text" id="loginUsername" required placeholder="Contoh: admin atau user" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1">PIN / Kata Sandi</label>
+        <div class="relative">
+          <span class="absolute left-3.5 top-3 text-slate-400 text-sm"><i class="fa-solid fa-key"></i></span>
+          <input type="password" id="loginPassword" required placeholder="Default Admin: 1234" class="w-full bg-slate-50 border border-slate-300 rounded-xl pl-10 pr-3 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500 focus:bg-white outline-none transition">
+        </div>
+      </div>
+
+      <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl text-sm transition shadow-lg shadow-emerald-600/30 flex items-center justify-center space-x-2">
+        <i class="fa-solid fa-right-to-bracket"></i>
+        <span>Masuk Aplikasi</span>
+      </button>
+    </form>
+
+    <!-- Info Akun Default -->
+    <div class="mt-6 pt-4 border-t border-slate-100 text-center">
+      <p class="text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Akun Bawaan Sistem:</p>
+      <div class="grid grid-cols-2 gap-2 text-xs">
+        <div class="bg-emerald-50 text-emerald-800 p-2.5 rounded-xl border border-emerald-200/60">
+          <span class="font-bold block">Administrator</span>
+          <code class="text-[11px]">admin / 1234</code>
+        </div>
+        <div class="bg-blue-50 text-blue-800 p-2.5 rounded-xl border border-blue-200/60">
+          <span class="font-bold block">User Biasa</span>
+          <code class="text-[11px]">user / 1234</code>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================================== -->
+  <!-- SCREEN 2: MAIN DASHBOARD APPLICATION -->
+  <!-- ========================================== -->
+  <div id="mainAppScreen" class="hidden max-w-6xl mx-auto w-full bg-white rounded-2xl shadow-xl overflow-hidden container-card border border-slate-200/60">
     
     <!-- Header App -->
-    <header class="bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700 text-white p-5 md:p-6 no-print">
+    <header class="bg-gradient-to-r from-emerald-700 via-teal-700 to-cyan-800 text-white p-5 md:p-6 no-print">
       <div class="flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center space-x-3">
-          <div class="bg-white/10 p-3 rounded-xl backdrop-blur-md">
-            <i class="fa-solid me-0 fa-wallet text-2xl md:text-3xl text-emerald-200"></i>
+        
+        <div class="flex items-center space-x-3 w-full md:w-auto">
+          <div class="bg-white/10 p-3 rounded-2xl backdrop-blur-md">
+            <i class="fa-solid fa-wallet text-2xl md:text-3xl text-emerald-200"></i>
           </div>
           <div>
-            <h1 class="text-xl md:text-2xl font-bold tracking-tight">Catat Piutang Master</h1>
-            <p class="text-xs md:text-sm text-emerald-100/80">Kelola peminjam, piutang, bunga & laporan bulanan</p>
+            <div class="flex items-center space-x-2">
+              <h1 class="text-xl md:text-2xl font-bold tracking-tight">MP Finance </h1>
+              <span id="currentUserRoleBadge" class="bg-white/20 text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-white/20">Admin</span>
+            </div>
+            <p class="text-xs text-emerald-100/80">Kelola peminjam, piutang, bunga, & manajemen user</p>
           </div>
         </div>
         
-        <!-- Action Quick Buttons -->
-        <div class="flex items-center space-x-2 w-full md:w-auto justify-end">
-          <button onclick="exportExcel()" class="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-400 text-white px-3.5 py-2 rounded-xl text-xs font-medium transition shadow-sm border border-emerald-400/30">
+        <!-- User Info & Action Quick Buttons -->
+        <div class="flex flex-wrap items-center justify-between md:justify-end gap-2 w-full md:w-auto">
+          
+          <div class="flex items-center space-x-2 bg-emerald-900/40 px-3 py-1.5 rounded-xl backdrop-blur-md text-xs border border-white/10">
+            <i class="fa-solid fa-circle-user text-emerald-300"></i>
+            <span>Halo, <strong id="currentUsernameText">Admin</strong></span>
+          </div>
+
+          <button onclick="exportExcel()" class="flex items-center space-x-1.5 bg-emerald-500 hover:bg-emerald-400 text-white px-3 py-1.5 rounded-xl text-xs font-medium transition shadow-sm border border-emerald-400/30">
             <i class="fa-solid fa-file-excel"></i>
-            <span>Export Excel</span>
+            <span class="hidden sm:inline">Export</span>
           </button>
-          <label class="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-cyan-600 hover:bg-cyan-500 text-white px-3.5 py-2 rounded-xl text-xs font-medium cursor-pointer transition shadow-sm border border-cyan-400/30">
+          
+          <label class="flex items-center space-x-1.5 bg-cyan-600 hover:bg-cyan-500 text-white px-3 py-1.5 rounded-xl text-xs font-medium cursor-pointer transition shadow-sm border border-cyan-400/30">
             <i class="fa-solid fa-file-import"></i>
-            <span>Import Excel</span>
+            <span class="hidden sm:inline">Import</span>
             <input type="file" id="importFile" accept=".xlsx, .xls, .csv" onchange="importExcel(event)" class="hidden">
           </label>
+
+          <button onclick="handleLogout()" class="bg-red-500/80 hover:bg-red-600 text-white px-3 py-1.5 rounded-xl text-xs font-semibold transition border border-red-400/30 flex items-center space-x-1" title="Keluar Akun">
+            <i class="fa-solid fa-power-off"></i>
+            <span>Keluar</span>
+          </button>
         </div>
       </div>
 
       <!-- Navigation Tabs -->
-      <nav class="flex space-x-2 mt-6 bg-emerald-900/40 p-1.5 rounded-xl backdrop-blur-md">
-        <button id="nav-piutang" onclick="switchTab('piutang')" class="flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 bg-white text-emerald-700 shadow">
+      <nav class="flex space-x-1 md:space-x-2 mt-6 bg-emerald-950/40 p-1.5 rounded-xl backdrop-blur-md overflow-x-auto">
+        <button id="nav-piutang" onclick="switchTab('piutang')" class="flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 bg-white text-emerald-800 shadow">
           <i class="fa-solid fa-hand-holding-dollar"></i>
           <span>Catat Piutang</span>
         </button>
-        <button id="nav-teman" onclick="switchTab('teman')" class="flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10">
+        <button id="nav-teman" onclick="switchTab('teman')" class="flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10">
           <i class="fa-solid fa-users"></i>
           <span>Data Teman</span>
         </button>
-        <button id="nav-laporan" onclick="switchTab('laporan')" class="flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10">
+        <button id="nav-laporan" onclick="switchTab('laporan')" class="flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10">
           <i class="fa-solid fa-chart-line"></i>
-          <span>Laporan Keuangan</span>
+          <span>Laporan</span>
+        </button>
+        <!-- Khusus Tab Admin Access -->
+        <button id="nav-users" onclick="switchTab('users')" class="admin-only hidden flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition items-center justify-center space-x-2 text-amber-200 hover:bg-white/10 border border-amber-400/30">
+          <i class="fa-solid fa-user-shield"></i>
+          <span>Akses User</span>
         </button>
       </nav>
     </header>
@@ -190,7 +284,6 @@
 
           <!-- Total Summary Right Widget -->
           <div class="flex flex-col space-y-4">
-            
             <div class="bg-gradient-to-br from-emerald-50 to-teal-50 border border-emerald-200/80 p-5 rounded-2xl flex-1 flex flex-col justify-center">
               <span class="text-xs font-bold text-emerald-800 uppercase tracking-wider mb-1">Total Sisa Piutang Pokok</span>
               <div id="totalPokok" class="text-2xl md:text-3xl font-extrabold text-emerald-600">Rp 0</div>
@@ -202,7 +295,6 @@
               <div id="totalSeluruh" class="text-2xl md:text-3xl font-extrabold text-cyan-600">Rp 0</div>
               <p class="text-xs text-cyan-700/70 mt-1">Total penagihan aktif termasuk bunga penetapan.</p>
             </div>
-
           </div>
 
         </div>
@@ -323,7 +415,6 @@
 
         <!-- Summary Cards Laporan -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-          
           <div class="bg-slate-50 border border-slate-200 p-3.5 rounded-xl text-center">
             <span class="text-[11px] font-semibold text-slate-500 uppercase tracking-wider block mb-1">Total Dipinjam (Pokok)</span>
             <div id="lapTotalPinjam" class="text-base md:text-lg font-bold text-slate-800">Rp 0</div>
@@ -343,7 +434,6 @@
             <span class="text-[11px] font-semibold text-emerald-700 uppercase tracking-wider block mb-1">Sisa Piutang Aktif</span>
             <div id="lapSisaPiutang" class="text-base md:text-lg font-bold text-emerald-600">Rp 0</div>
           </div>
-
         </div>
 
         <!-- Card Bunga / Keuntungan Highlight -->
@@ -378,32 +468,168 @@
 
       </section>
 
+      <!-- ========================================== -->
+      <!-- TAB 4: USER ACCESS MANAGEMENT (ADMIN ONLY) -->
+      <!-- ========================================== -->
+      <section id="tab-users" class="tab-content-panel admin-only hidden space-y-6">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Form User Management -->
+          <div class="bg-slate-50 p-5 rounded-2xl border border-slate-200/80 shadow-sm h-fit">
+            <div class="flex justify-between items-center mb-4">
+              <h2 id="userFormTitle" class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-user-plus text-amber-600"></i>
+                <span>Tambah Pengguna Baru</span>
+              </h2>
+              <button id="cancelEditUserBtn" onclick="resetUserForm()" class="hidden text-xs text-slate-500 hover:text-red-600 underline font-medium">Batal Edit</button>
+            </div>
+
+            <form id="userForm" onsubmit="simpanUser(event)" class="space-y-4">
+              <input type="hidden" id="editUserId" value="">
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Username / ID Pengguna *</label>
+                <input type="text" id="inputUsername" placeholder="Contoh: kasir1" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Nama Pengguna *</label>
+                <input type="text" id="inputFullName" placeholder="Contoh: Budi Operator" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">PIN / Password *</label>
+                <input type="password" id="inputPassword" placeholder="PIN atau Password" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition">
+              </div>
+
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Hak Akses / Role *</label>
+                <select id="inputRole" required class="w-full bg-white border border-slate-300 rounded-xl px-3 py-2 text-sm focus:ring-2 focus:ring-amber-500 outline-none transition">
+                  <option value="user">Regular User (Akses Catat & Laporan)</option>
+                  <option value="admin">Administrator (Akses Penuh + Kelola User)</option>
+                </select>
+              </div>
+
+              <button type="submit" id="saveUserBtn" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-md shadow-amber-600/20 flex items-center justify-center space-x-2">
+                <i class="fa-solid fa-user-shield"></i>
+                <span>Simpan Pengguna</span>
+              </button>
+            </form>
+          </div>
+
+          <!-- Tabel Pengguna Terdaftar -->
+          <div class="lg:col-span-2 space-y-4">
+            <div class="flex justify-between items-center">
+              <h2 class="text-base font-bold text-slate-800 flex items-center space-x-2">
+                <i class="fa-solid fa-users-gear text-amber-600"></i>
+                <span>Daftar Pengguna Sistem</span>
+              </h2>
+              <span id="userCountBadge" class="bg-amber-100 text-amber-800 text-xs font-bold px-2.5 py-0.5 rounded-full">0 Pengguna</span>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm bg-white">
+              <table class="w-full text-left text-xs md:text-sm">
+                <thead class="bg-slate-100 text-slate-700 font-semibold border-b border-slate-200">
+                  <tr>
+                    <th class="p-3">Username</th>
+                    <th class="p-3">Nama</th>
+                    <th class="p-3">Role</th>
+                    <th class="p-3 text-right">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="tabelUsers" class="divide-y divide-slate-100">
+                  <!-- Rows injected by JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
     </main>
+
+    <footer class="bg-slate-50 border-t border-slate-200 p-4 text-center text-xs text-slate-400 no-print">
+      Catat Piutang Master &copy; 2026 • Sistem Catatan & Manajemen Akses
+    </footer>
   </div>
 
   <!-- JavaScript Logic -->
   <script>
-    // State Application
-    let dataCatatan = JSON.parse(localStorage.getItem('catatanPiutang')) || [];
-    let dataTeman = JSON.parse(localStorage.getItem('dataTeman')) || [];
+    // System LocalStorage Keys
+    const STORAGE_KEY_CATATAN = 'catatanPiutang';
+    const STORAGE_KEY_TEMAN = 'dataTeman';
+    const STORAGE_KEY_USERS = 'dataUsers';
+    const STORAGE_KEY_SESSION = 'currentUserSession';
 
-    // On Load Initialization
-    window.addEventListener('DOMContentLoaded', () => {
-      // Set Default Date Input
-      const today = new Date().toISOString().split('T')[0];
-      document.getElementById('tanggalPinjam').value = today;
+    // Application State Variables
+    let dataCatatan = JSON.parse(localStorage.getItem(STORAGE_KEY_CATATAN)) || [];
+    let dataTeman = JSON.parse(localStorage.getItem(STORAGE_KEY_TEMAN)) || [];
+    let dataUsers = JSON.parse(localStorage.getItem(STORAGE_KEY_USERS)) || [];
+    let currentUser = JSON.parse(sessionStorage.getItem(STORAGE_KEY_SESSION)) || null;
 
-      // Seed Initial Sample Data if totally empty
+    // Default Seed Users (Admin & User biasa)
+    function seedDefaultUsers() {
+      if (dataUsers.length === 0) {
+        dataUsers = [
+          { id: 'usr-admin', username: 'admin', fullname: 'Administrator System', password: '1234', role: 'admin' },
+          { id: 'usr-regular', username: 'user', fullname: 'Operator Biasa', password: '1234', role: 'user' }
+        ];
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(dataUsers));
+      }
+    }
+
+    // Default Seed Master Teman
+    function seedDefaultTeman() {
       if (dataTeman.length === 0) {
         dataTeman = [
           { id: 101, nama: 'Budi Santoso', kontak: '081234567890', alamat: 'Teman Kantor' },
           { id: 102, nama: 'Siti Rahma', kontak: '085678901234', alamat: 'Tetangga Rumah' }
         ];
-        localStorage.setItem('dataTeman', JSON.stringify(dataTeman));
+        localStorage.setItem(STORAGE_KEY_TEMAN, JSON.stringify(dataTeman));
+      }
+    }
+
+    // Modal Alert Utility
+    function showAlert(title, message, isError = false) {
+      const modal = document.getElementById('customAlertModal');
+      const iconContainer = document.getElementById('modalIconContainer');
+      const icon = document.getElementById('modalIcon');
+      
+      document.getElementById('modalTitle').textContent = title;
+      document.getElementById('modalMessage').textContent = message;
+
+      if (isError) {
+        iconContainer.className = 'p-2.5 rounded-xl bg-red-100 text-red-600';
+        icon.className = 'fa-solid fa-triangle-exclamation text-xl';
+      } else {
+        iconContainer.className = 'p-2.5 rounded-xl bg-emerald-100 text-emerald-600';
+        icon.className = 'fa-solid fa-circle-check text-xl';
       }
 
-      tampilkanTeman();
-      tampilkanPiutang();
+      modal.classList.remove('hidden');
+    }
+
+    function closeModal() {
+      document.getElementById('customAlertModal').classList.add('hidden');
+    }
+
+    // On Load App Initialization
+    window.addEventListener('DOMContentLoaded', () => {
+      seedDefaultUsers();
+      seedDefaultTeman();
+
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('tanggalPinjam').value = today;
+
+      // Check Session Login State
+      if (currentUser) {
+        showMainApp();
+      } else {
+        showLogin();
+      }
     });
 
     // Format Currency Utilities
@@ -411,32 +637,233 @@
       return 'Rp ' + Math.max(0, Math.round(angka)).toLocaleString('id-ID');
     }
 
+    // ==========================================
+    // AUTHENTICATION & SESSION MANAGEMENT
+    // ==========================================
+    function handleLogin(e) {
+      e.preventDefault();
+      const usernameInput = document.getElementById('loginUsername').value.trim();
+      const passwordInput = document.getElementById('loginPassword').value.trim();
+
+      const user = dataUsers.find(u => u.username.toLowerCase() === usernameInput.toLowerCase() && u.password === passwordInput);
+
+      if (user) {
+        currentUser = user;
+        sessionStorage.setItem(STORAGE_KEY_SESSION, JSON.stringify(currentUser));
+        document.getElementById('loginForm').reset();
+        showMainApp();
+      } else {
+        showAlert('Login Gagal', 'Username atau PIN/Password tidak sesuai!', true);
+      }
+    }
+
+    function handleLogout() {
+      sessionStorage.removeItem(STORAGE_KEY_SESSION);
+      currentUser = null;
+      showLogin();
+    }
+
+    function showLogin() {
+      document.getElementById('authScreen').classList.remove('hidden');
+      document.getElementById('mainAppScreen').classList.add('hidden');
+    }
+
+    function showMainApp() {
+      document.getElementById('authScreen').classList.add('hidden');
+      document.getElementById('mainAppScreen').classList.remove('hidden');
+
+      // Update Current User UI info
+      document.getElementById('currentUsernameText').textContent = currentUser.fullname || currentUser.username;
+      
+      const roleBadge = document.getElementById('currentUserRoleBadge');
+      roleBadge.textContent = currentUser.role === 'admin' ? 'ADMINISTRATOR' : 'REGULAR USER';
+      roleBadge.className = currentUser.role === 'admin' 
+        ? 'bg-amber-400 text-slate-900 text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-amber-300'
+        : 'bg-cyan-500 text-white text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full border border-cyan-300';
+
+      // Toggle Admin Only Elements
+      document.querySelectorAll('.admin-only').forEach(el => {
+        if (currentUser.role === 'admin') {
+          el.classList.remove('hidden');
+          if (el.tagName === 'BUTTON') el.classList.add('flex');
+        } else {
+          el.classList.add('hidden');
+          el.classList.remove('flex');
+        }
+      });
+
+      // Default switch to piutang tab
+      switchTab('piutang');
+      tampilkanTeman();
+      tampilkanPiutang();
+      if (currentUser.role === 'admin') {
+        tampilkanUsers();
+      }
+    }
+
     // Switch Navigation Tabs
     function switchTab(tabName) {
+      // Security Guard for Admin Only Tabs
+      if (tabName === 'users' && currentUser?.role !== 'admin') {
+        showAlert('Akses Ditolak', 'Hanya Administrator yang dapat mengakses menu User Access Management.', true);
+        return;
+      }
+
       // Hide all panels
       document.querySelectorAll('.tab-content-panel').forEach(panel => panel.classList.add('hidden'));
 
       // Reset Nav Button Styles
-      const navBtns = ['piutang', 'teman', 'laporan'];
+      const navBtns = ['piutang', 'teman', 'laporan', 'users'];
       navBtns.forEach(name => {
         const btn = document.getElementById('nav-' + name);
         if (btn) {
-          btn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10';
+          if (name === 'users') {
+            btn.className = 'admin-only flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition items-center justify-center space-x-2 text-amber-200 hover:bg-white/10 border border-amber-400/30 ' + (currentUser?.role === 'admin' ? 'flex' : 'hidden');
+          } else {
+            btn.className = 'flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 text-emerald-100 hover:bg-white/10';
+          }
         }
       });
 
       // Activate Chosen Tab
       const activePanel = document.getElementById('tab-' + tabName);
       const activeBtn = document.getElementById('nav-' + tabName);
+      
       if (activePanel) activePanel.classList.remove('hidden');
       if (activeBtn) {
-        activeBtn.className = 'flex-1 py-2.5 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 bg-white text-emerald-700 shadow';
+        if (tabName === 'users') {
+          activeBtn.className = 'admin-only flex-1 min-w-[120px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 bg-amber-400 text-slate-900 shadow font-bold';
+        } else {
+          activeBtn.className = 'flex-1 min-w-[100px] py-2 px-3 rounded-lg text-xs md:text-sm font-semibold transition flex items-center justify-center space-x-2 bg-white text-emerald-800 shadow';
+        }
       }
 
-      // Refresh specific tab views if needed
-      if (tabName === 'laporan') {
-        prosesLaporan();
+      // Refresh specific tab views
+      if (tabName === 'laporan') prosesLaporan();
+    }
+
+    // ==========================================
+    // USER ACCESS MANAGEMENT (ADMIN ONLY)
+    // ==========================================
+    function simpanUser(e) {
+      e.preventDefault();
+      if (currentUser?.role !== 'admin') return;
+
+      const editId = document.getElementById('editUserId').value;
+      const username = document.getElementById('inputUsername').value.trim();
+      const fullname = document.getElementById('inputFullName').value.trim();
+      const password = document.getElementById('inputPassword').value.trim();
+      const role = document.getElementById('inputRole').value;
+
+      if (!username || !password || !fullname) {
+        showAlert('Form Belum Lengkap', 'Semua kolom pengguna wajib diisi!', true);
+        return;
       }
+
+      if (editId) {
+        // Edit User
+        const user = dataUsers.find(u => u.id === editId);
+        if (user) {
+          user.username = username;
+          user.fullname = fullname;
+          user.password = password;
+          user.role = role;
+          showAlert('Berhasil', `Data pengguna ${username} berhasil diperbarui.`);
+        }
+      } else {
+        // Check Duplicate Username
+        if (dataUsers.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+          showAlert('Username Duplikat', `Username "${username}" sudah digunakan pengguna lain!`, true);
+          return;
+        }
+
+        dataUsers.push({
+          id: 'usr-' + Date.now(),
+          username: username,
+          fullname: fullname,
+          password: password,
+          role: role
+        });
+        showAlert('Pengguna Ditambahkan', `Pengguna baru "${username}" berhasil terdaftar.`);
+      }
+
+      localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(dataUsers));
+      resetUserForm();
+      tampilkanUsers();
+    }
+
+    function editUser(id) {
+      const user = dataUsers.find(u => u.id === id);
+      if (!user) return;
+
+      document.getElementById('editUserId').value = user.id;
+      document.getElementById('inputUsername').value = user.username;
+      document.getElementById('inputFullName').value = user.fullname;
+      document.getElementById('inputPassword').value = user.password;
+      document.getElementById('inputRole').value = user.role;
+
+      document.getElementById('userFormTitle').innerHTML = '<i class="fa-solid fa-user-pen text-amber-600"></i><span>Edit Pengguna</span>';
+      document.getElementById('saveUserBtn').className = 'w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-md flex items-center justify-center space-x-2';
+      document.getElementById('cancelEditUserBtn').classList.remove('hidden');
+    }
+
+    function resetUserForm() {
+      document.getElementById('editUserId').value = '';
+      document.getElementById('userForm').reset();
+      document.getElementById('userFormTitle').innerHTML = '<i class="fa-solid fa-user-plus text-amber-600"></i><span>Tambah Pengguna Baru</span>';
+      document.getElementById('saveUserBtn').className = 'w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2.5 px-4 rounded-xl text-sm transition shadow-md flex items-center justify-center space-x-2';
+      document.getElementById('cancelEditUserBtn').classList.add('hidden');
+    }
+
+    function hapusUser(id) {
+      const user = dataUsers.find(u => u.id === id);
+      if (!user) return;
+
+      if (user.username === currentUser.username) {
+        showAlert('Tidak Dapat Menghapus', 'Anda tidak dapat menghapus akun Anda sendiri saat ini sedang aktif!', true);
+        return;
+      }
+
+      if (confirm(`Apakah Anda yakin ingin menghapus pengguna "${user.username}"?`)) {
+        dataUsers = dataUsers.filter(u => u.id !== id);
+        localStorage.setItem(STORAGE_KEY_USERS, JSON.stringify(dataUsers));
+        tampilkanUsers();
+        showAlert('Berhasil Hapus', `Pengguna "${user.username}" telah dihapus.`);
+      }
+    }
+
+    function tampilkanUsers() {
+      const tabelEl = document.getElementById('tabelUsers');
+      const badgeEl = document.getElementById('userCountBadge');
+      
+      tabelEl.innerHTML = '';
+      badgeEl.textContent = `${dataUsers.length} Pengguna`;
+
+      dataUsers.forEach(u => {
+        const tr = document.createElement('tr');
+        tr.className = 'hover:bg-slate-50 transition';
+        tr.innerHTML = `
+          <td class="p-3 font-semibold text-slate-800">
+            ${u.username}
+            ${u.username === currentUser.username ? '<span class="ml-1 text-[10px] bg-emerald-100 text-emerald-700 px-1.5 py-0.5 rounded">Anda</span>' : ''}
+          </td>
+          <td class="p-3">${u.fullname}</td>
+          <td class="p-3">
+            <span class="${u.role === 'admin' ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-700'} text-[11px] font-bold px-2 py-0.5 rounded-full uppercase">
+              ${u.role}
+            </span>
+          </td>
+          <td class="p-3 text-right space-x-1">
+            <button onclick="editUser('${u.id}')" class="text-xs text-amber-600 hover:bg-amber-50 p-1.5 rounded-lg transition" title="Edit">
+              <i class="fa-solid fa-pen-to-square"></i>
+            </button>
+            <button onclick="hapusUser('${u.id}')" class="text-xs text-red-600 hover:bg-red-50 p-1.5 rounded-lg transition" title="Hapus">
+              <i class="fa-solid fa-trash-can"></i>
+            </button>
+          </td>
+        `;
+        tabelEl.appendChild(tr);
+      });
     }
 
     // ==========================================
@@ -450,7 +877,7 @@
       const alamat = document.getElementById('alamatTeman').value.trim();
 
       if (!nama) {
-        alert("Nama teman tidak boleh kosong!");
+        showAlert('Form Belum Lengkap', 'Nama teman tidak boleh kosong!', true);
         return;
       }
 
@@ -458,7 +885,6 @@
         // Edit Existing Friend
         const friend = dataTeman.find(t => t.id == idInput);
         if (friend) {
-          // Update transactions if name changed
           const oldName = friend.nama;
           friend.nama = nama;
           friend.kontak = kontak;
@@ -468,13 +894,13 @@
             dataCatatan.forEach(c => {
               if (c.nama === oldName) c.nama = nama;
             });
-            localStorage.setItem('catatanPiutang', JSON.stringify(dataCatatan));
+            localStorage.setItem(STORAGE_KEY_CATATAN, JSON.stringify(dataCatatan));
           }
         }
       } else {
         // Check duplication
         if (dataTeman.some(t => t.nama.toLowerCase() === nama.toLowerCase())) {
-          alert("Nama teman sudah ada!");
+          showAlert('Nama Duplikat', `Nama teman "${nama}" sudah terdaftar!`, true);
           return;
         }
 
@@ -487,10 +913,11 @@
         });
       }
 
-      localStorage.setItem('dataTeman', JSON.stringify(dataTeman));
+      localStorage.setItem(STORAGE_KEY_TEMAN, JSON.stringify(dataTeman));
       resetFriendForm();
       tampilkanTeman();
       tampilkanPiutang();
+      showAlert('Berhasil', `Data teman "${nama}" berhasil disimpan.`);
     }
 
     function editTeman(id) {
@@ -519,19 +946,12 @@
       const friend = dataTeman.find(t => t.id == id);
       if (!friend) return;
 
-      // Check if friend has active debts
-      const hasDebts = dataCatatan.some(c => c.nama === friend.nama);
-      if (hasDebts) {
-        if (!confirm(`Teman "${friend.nama}" memiliki catatan piutang. Menghapus teman tidak akan menghapus riwayat piutangnya. Yakin tetap hapus?`)) {
-          return;
-        }
-      } else {
-        if (!confirm(`Hapus "${friend.nama}" dari data teman?`)) return;
+      if (confirm(`Apakah Anda yakin ingin menghapus teman "${friend.nama}" dari master data?`)) {
+        dataTeman = dataTeman.filter(t => t.id != id);
+        localStorage.setItem(STORAGE_KEY_TEMAN, JSON.stringify(dataTeman));
+        tampilkanTeman();
+        showAlert('Terhapus', `Data teman "${friend.nama}" berhasil dihapus.`);
       }
-
-      dataTeman = dataTeman.filter(t => t.id != id);
-      localStorage.setItem('dataTeman', JSON.stringify(dataTeman));
-      tampilkanTeman();
     }
 
     function tampilkanTeman() {
@@ -545,7 +965,6 @@
       badgeEl.textContent = `${dataTeman.length} Teman`;
 
       dataTeman.forEach(t => {
-        // Calculate total loan active for this friend
         const totalPinjamanAktif = dataCatatan
           .filter(c => c.nama === t.nama)
           .reduce((sum, c) => sum + c.sisaTagihan, 0);
@@ -588,7 +1007,7 @@
     // CATATAN PIUTANG FUNCTIONS
     // ==========================================
     function simpanCatatanData() {
-      localStorage.setItem('catatanPiutang', JSON.stringify(dataCatatan));
+      localStorage.setItem(STORAGE_KEY_CATATAN, JSON.stringify(dataCatatan));
       tampilkanPiutang();
     }
 
@@ -602,7 +1021,7 @@
       const keterangan = document.getElementById('keteranganPinjam').value.trim();
 
       if (!nama) {
-        alert("Pilih teman terlebih dahulu!");
+        showAlert('Pilih Teman', 'Pilih peminjam dari daftar terlebih dahulu!', true);
         return;
       }
 
@@ -626,10 +1045,10 @@
       dataCatatan.push(catatanBaru);
       simpanCatatanData();
 
-      // Reset form
       document.getElementById('debtForm').reset();
       document.getElementById('bungaPersen').value = '0';
       document.getElementById('tanggalPinjam').value = new Date().toISOString().split('T')[0];
+      showAlert('Catatan Tersimpan', `Catatan piutang untuk ${nama} telah dibuat.`);
     }
 
     function bayarSebagian(id) {
@@ -641,12 +1060,12 @@
 
       const jumlahBayar = parseFloat(inputBayar);
       if (isNaN(jumlahBayar) || jumlahBayar <= 0) {
-        alert("Nominal pembayaran harus berupa angka positif!");
+        showAlert('Nominal Tidak Valid', 'Nominal pembayaran harus berupa angka positif!', true);
         return;
       }
 
       if (jumlahBayar > item.sisaTagihan) {
-        alert("Pembayaran tidak boleh melebihi sisa tagihan!");
+        showAlert('Lebih Dari Tagihan', 'Pembayaran tidak boleh melebihi sisa tagihan!', true);
         return;
       }
 
@@ -655,6 +1074,7 @@
       item.sisaPokok = Math.max(0, item.sisaPokok - jumlahBayar);
 
       simpanCatatanData();
+      showAlert('Pembayaran Berhasil', `Pembayaran sebesar ${formatRupiah(jumlahBayar)} dicatat.`);
     }
 
     function hapusCatatan(id) {
@@ -803,7 +1223,7 @@
     // ==========================================
     function exportExcel() {
       if (dataCatatan.length === 0) {
-        alert("Belum ada data piutang untuk diexport!");
+        showAlert('Data Kosong', 'Belum ada data piutang untuk diexport!', true);
         return;
       }
 
@@ -840,7 +1260,7 @@
           const json = XLSX.utils.sheet_to_json(worksheet);
 
           if (json.length === 0) {
-            alert("File Excel kosong atau format tidak sesuai!");
+            showAlert('Format Salah', 'File Excel kosong atau format tidak sesuai!', true);
             return;
           }
 
@@ -858,7 +1278,7 @@
             keterangan: row["Keterangan"] !== "-" ? row["Keterangan"] : ""
           }));
 
-          // Automatically import missing friends to master list
+          // Import missing friends automatically
           imported.forEach(imp => {
             if (!dataTeman.some(t => t.nama.toLowerCase() === imp.nama.toLowerCase())) {
               dataTeman.push({ id: Date.now() + Math.random(), nama: imp.nama, kontak: '', alamat: 'Imported' });
@@ -866,14 +1286,14 @@
           });
 
           dataCatatan = [...dataCatatan, ...imported];
-          localStorage.setItem('dataTeman', JSON.stringify(dataTeman));
+          localStorage.setItem(STORAGE_KEY_TEMAN, JSON.stringify(dataTeman));
           simpanCatatanData();
           tampilkanTeman();
 
-          alert("Berhasil mengimpor data dari file Excel!");
+          showAlert('Import Berhasil', 'Data transaksi berhasil diimpor dari file Excel!');
         } catch (err) {
           console.error(err);
-          alert("Gagal membaca file Excel. Pastikan format kolom sesuai.");
+          showAlert('Gagal Import', 'Gagal membaca file Excel. Pastikan format kolom sesuai.', true);
         } finally {
           event.target.value = '';
         }
@@ -883,19 +1303,3 @@
   </script>
 </body>
 </html>
-```
-
-### Pembaruan dan Perbaikan Utama yang Telah Dilakukan:
-
-1. **Perbaikan Tab Navigation (Data Teman Fixed)**:
-   - Tab switching kini berjalan mulus. Mengklik tab **Data Teman** memperlihatkan form Tambah/Edit Teman serta daftar master teman tersimpan.
-2. **Sinkronisasi Otomatis**:
-   - Menambahkan teman baru di tab Data Teman langsung secara otomatis mengisi dropdown pilihan teman di tab **Catat Piutang**.
-   - Jika nama teman di-edit, seluruh riwayat transaksi piutangnya ikut terkelola dan ter-update secara konsisten.
-3. **Master Data Teman Lengkap**:
-   - Dapat menambah, meng-edit, serta menghapus data teman.
-   - Menampilkan akumulasi total pinjaman/tanggungan aktif per masing-masing teman.
-4. **Laporan Keuangan & Filter Tanggal**:
-   - Filter Laporan berdasarkan periode (*Dari Tanggal* s.d. *Sampai Tanggal*).
-   - Menampilkan ringkasan **Total Dipinjam (Pokok)**, **Total Bunga Ditetapkan**, **Total Sudah Dibayar**, **Sisa Piutang Aktif**, dan **Proyeksi Keuntungan Bunga (Selisih)**.
-   - Dilengkapi tombol **Cetak Laporan** (dengan tampilan ramah cetak) dan **Export/Import Excel**.
